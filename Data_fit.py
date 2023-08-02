@@ -11,8 +11,9 @@ def in_sq(x, A):
 f1, ax1 = plt.subplots();
 par, cov = opt.curve_fit(in_sq, x, y);
 x_line = np.linspace(15,80, 1000);
+ax1.set(xlabel = "distance(cm)", ylabel = "voltage(V)", title = "Inverse square fit");
 ax1.plot(x,y, "o", color = "blue", label = "data");
-ax1.plot(x_line, in_sq(x_line, *par), color = "red", label = "inverse square fit");
+ax1.plot(x_line, in_sq(x_line, *par), color = "red", label = "in_sq_fit");
 ax1.legend();
 f1.savefig("/home/zky/project_129/data_in_sq_fit.eps", format = "eps");
 
@@ -22,6 +23,8 @@ def expo_d(x, A, B):
 
 f2, ax2 = plt.subplots();
 par, cov = opt.curve_fit(expo_d, x, y);
+ax2.set(xlabel = "distance(cm)", ylabel = "voltage(V)", title = "Decay exponential fit");
 ax2.plot(x,y, "o", color = "blue", label = "data");
-ax2.plot(x_line, expo_d(x_line, *par), color = "red", label = "decay exponential fit");
+ax2.plot(x_line, expo_d(x_line, *par), color = "red", label = "dec_exp_fit");
+ax2.legend();
 f2.savefig("/home/zky/project_129/data_dec_exp_fit.eps", format = "eps");
