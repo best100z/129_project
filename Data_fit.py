@@ -1,13 +1,21 @@
 import numpy as np
-#import scipy.optimize as opt
+import scipy.optimize as opt
 import matplotlib.pyplot as plt
 
 data = np.loadtxt("/home/zky/project_129/data.txt");
-fig, ax = plt.subplots();
-ax.plot(data[1],data[0]);
-
-
+x = data[:,1];
+y = data[:,0];
 """
+def in_sq(x, A):
+    return A/x**2;
+f1, ax1 = plt.subplots();
+par, cov = opt.curve_fit(in_sq, x, y);
+x_line = np.linspace(15,80, 1000);
+ax1.plot(x,y, "o", color = "blue", label = "data");
+ax1.plot(x_line, in_sq(x_line, *par), color = "red", label = "inverse square fit");
+plt.show();
+
+
 # Define the model function
 def exponential_decay(x, A, B):
     return A * np.exp(-B * x)
