@@ -1,0 +1,1 @@
+as we can see from the graph, the Monte method isn't great for dealing with 1D integration, where it takes about 1000 of them to converge well enough, however, monte method is really good in terms of hihger dimnetional integration

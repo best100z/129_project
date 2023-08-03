@@ -1,0 +1,3 @@
+in the interactive Python prompt, after executing this execv(), first it returns the documents as expected, and then it returns to the normal termal.
+This means that after running the os.execv(), it kills the process that this commnad is located;
+for the b part, it kills the Child process, and thus there is only a main parent process running at all time.
