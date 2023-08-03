@@ -1,0 +1,72 @@
+for the trp script, it first make sure there is a argument after the trp command, and if there isn't it will print out that trp command, which tells that we need to input trp with a command, and it will exit with code 1 means there is error;
+
+if there are arguments for the trp command:
+	then it will run this code:
+	exec strace -s 256 -f -x -etrace=!mmap2,munmap,sigaction -o tr $*
+	in my case I ran: trp python3 ~/zhou_5993043_homework/zhou_5993043_hw6/p1_hw6.py
+	exec means to execute, strace means to trace the system running by the porgram(in my case it is the p1_hw6.py), -s 256 limits the system output string length to 256 bytes;
+	-f makes it possible to fork and trace the child process, -x makes the unprintable characters in a printable format;
+	-etrace=!... makes the system calls related to those three to be excluded, which means we only care about the ones running the main progam;
+	-o tr means open a file named tr, which will be saved at the home directory;
+	$* means we are running this command, which in our case runs the python script;
+	
+(a):
+output:
+3028  write(1, "9\n", 2)                = 2
+3028  clock_gettime64(CLOCK_MONOTONIC, {tv_sec=5175, tv_nsec=856874106}) = 0
+3028  _newselect(0, NULL, NULL, NULL, {tv_sec=0, tv_usec=500000}) = 0 (Timeout)
+3028  write(1, "10\n", 3)               = 3
+3028  write(1, "It is about to fork\n", 20) = 20
+3028  clone(child_stack=NULL, flags=CLONE_CHILD_CLEARTID|CLONE_CHILD_SETTID|SIGCHLD, child_tidptr=0xf7ad46a8) = 3030
+3030  set_robust_list(0xf7ad46b0, 12 <unfinished ...>
+3028  clock_gettime64(CLOCK_MONOTONIC,  <unfinished ...>
+3030  <... set_robust_list resumed>)    = 0
+3028  <... clock_gettime64 resumed>{tv_sec=5176, tv_nsec=359055723}) = 0
+3028  _newselect(0, NULL, NULL, NULL, {tv_sec=0, tv_usec=500000} <unfinished ...>
+
+explain:
+for the first number it is the process ID of the system calls, where the parent PID is 3028 and the Child PID is 3030;
+the line 3028  clone(child_stack=NULL, flags=CLONE_CHILD_CLEARTID|CLONE_CHILD_SETTID|SIGCHLD, child_tidptr=0xf7ad46a8) = 3030 forks
+3028 is the parent PID and clone duplicates the process, but it shares the same memory as the child_stack is set to null.
+the flags entry makes tid clears as the Child process exits, and as accessing the Child process, the tid is set to the child thread id(tid), and the parent process will be sent a signal when child exits.
+child_tidptr=0xf7ad46a8 sets the child tid storage to this argument.
+and lastly, = 3030 means return value of clone, which is the tid of child process is set to 3030, and at this momnet forks.
+
+the five lines previous prints the number and waits for a sec then prints it is about to fork;
+
+first line after is the child process respond to strace that it hasnt finish running yet,
+second line is the parent process claiming that the process of obtaining time hasnt finsihed yet;
+then the two following resumes the action of the two described above;
+the last line is the parent cell claiming that the system is still waiting for input or output and it hasnt received thing yet
+
+(b):
+output:
+3030  write(1, "-rw-r--r-- 1 zky zky  1772 Aug  3 04:38 p6_hw6.py\n", 50) = 50
+3030  write(1, "-rw-r--r-- 1 zky zky   231 Aug  3 04:40 p6_hw6.txt\n", 51) = 51
+3030  close(1)                          = 0
+3030  close(2)                          = 0
+3030  exit_group(0)                     = ?
+3030  +++ exited with 0 +++
+
+explain:
+3030 is the child pid;
+the first two lines are the output for the ls;
+the third and fourth line closes the stdout and stderr
+the fifth line is to close all threads, the ? means the output is not received;
+last lines means to exit the process with code 0 means no errors
+
+(c):
+output:
+3030  +++ exited with 0 +++
+3028  <... _newselect resumed>)         = ? ERESTARTNOHAND (To be restarted if no handler)
+3028  --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=3030, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+3028  _newselect(0, NULL, NULL, NULL, {tv_sec=0, tv_usec=465481}) = ? ERESTARTNOHAND (To be restarted if no handler)
+3028  --- SIGINT {si_signo=SIGINT, si_code=SI_KERNEL} ---
+3028  sigreturn({mask=[]})              = -1 EINTR (Interrupted system call)
+
+explain: as asked, I exited the code right after the child process is killed
+the first line is the child process getting killed without error; 
+second line indicates that the _newselect system call has been resumed but is still incomplete and will be restarted if no signal handler is present to handle it.
+then the third line confirms the child process is killed, so the parents process can do clean up
+the fifthlines is the clean up that the parent process is operating;
+the last line indicate that the parent pid is about to do some process but it is interupted by the keyboard.
